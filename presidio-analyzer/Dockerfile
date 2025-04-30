@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.14.0a1-slim
 
 ARG NAME
 ARG NLP_CONF_FILE=presidio_analyzer/conf/default.yaml
