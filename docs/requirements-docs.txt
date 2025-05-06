@@ -10,3 +10,4 @@ presidio_image_redactor
 presidio_structured
 pygments>=2.10
 black
+setuptools>=78.1.1 # not directly required, pinned by Snyk to avoid a vulnerability
