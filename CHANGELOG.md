@@ -5,21 +5,68 @@ All notable changes to this project will be documented in this file.
 ## [unreleased]
 
 ### Analyzer
-- Fixed: Updated URL regex pattern to correctly exclude trailing single (') and double (") quotes from matched URLs.
-
+#### Changed
+- Most country specific recognizers that expect English were put as optional to avoid false positives, and would not work out-of-the-box (#1586). Specifically: 
+  - SgFinRecognizer
+  - AuAbnRecognizer
+  - AuAcnRecognizer
+  - AuTfnRecognizer
+  - AuMedicareRecognizer
+  - InPanRecognizer
+  - InAadhaarRecognizer
+  - InVehicleRegistrationRecognizer
+  - InPassportRecognizer
+  - EsNifRecognizer
+  - InVoterRecognizer
+  
+  To re-enable them, either change the [default YAML](https://github.com/microsoft/presidio/blob/main/presidio-analyzer/presidio_analyzer/conf/default_recognizers.yaml) to have them as `enabled: true`, or via code, add them to the recognizer registry manually. 
+  - Yaml based: see more here: [YAML based configuration](https://microsoft.github.io/presidio/analyzer/analyzer_engine_provider/).
+  - Code based:
+    ```py
+    from presidio_analyzer import AnalyzerEngine
+    from presidio_analyzer.predefined_recognizers import AuAbnRecognizer
+    
+    # Initialize an analyzer engine with the recognizer registry
+    analyzer = AnalyzerEngine()
+    
+    # Create an instance of the AuAbnRecognizer
+    au_abn_recognizer = AuAbnRecognizer()
+    
+    # Add the recognizer to the registry
+    analyzer.registry.add_recognizer(au_abn_recognizer)
+    ```
 ### Anonymizer
-
+- Fix mutation of input analyzer results object in Anonymizer by creating a copy first
+- Fix whitespace merging not occurring for unsorted (by start, end) analyzer results input by sorting it first
+  
 ### Image Redactor
-
-- Changed: Updated the return type annotation of `ocr_bboxes` in `verify_dicom_instance()` from `dict` to `list`.  
 
 ### Presidio Structured
 
 ### General
 
+## [2.2.358] - 2025-03-18
+
+### Analyzer
+- Fixed: Updated URL regex pattern to correctly exclude trailing single (') and double (") quotes from matched URLs.
+- Drop dependency of spacy_stanza package, and add supporting code to stanza_nlp_engine, to support recent stanza versions
+- Add parameters to allow users to define the number of processes and batch size when running BatchAnalyzerEngine.
+- Fix InPassportRecognizer regex recognizer
+  
+### Anonymizer
+- Changed: Deprecate `MD5` hash type option, defaulting into `sha256`.
+- Replace crypto package dependency from pycryptodom to cryptography 
+- Remove azure-core dependency from anonymizer
+  
+### Image Redactor
+- Changed: Updated the return type annotation of `ocr_bboxes` in `verify_dicom_instance()` from `dict` to `list`.  
+
+### Presidio Structured
+
+### General
 - Updated the `Evaluating DICOM Redaction` documentation to reflect changes in verify_dicom_instance() within the DicomImagePiiVerifyEngine class.
 
-## [2.3.357] - 2025-01-13
+## [2.2.357] - 2025-01-13
 
 ### Analyzer
 - Example GLiNER integration (#1504)
@@ -28,7 +75,7 @@ All notable changes to this project will be documented in this file.
 - Docs revamp and docstring bug fixes (#1500)
 - Minor updates to the mkdocstrings config (#1503)
 
-## [2.3.356] - 2024-12-15
+## [2.2.356] - 2024-12-15
 
 ### Analyzer
 - Added logic to handle phone numbers with country code (#1426) (Thanks @kauabh)
@@ -512,8 +559,11 @@ Upgrade Analyzer spacy version to 3.0.5
 2. Response entity anonymizer_text renamed to text.
 
 #### Deanonymize:
-New endpoint for deanonymizing encrypted entities by the anonymizer.
-[unreleased]: https://github.com/microsoft/presidio/compare/2.2.357...HEAD
+New endpoint for deanonymizing encrypted entities by the anonymizer.  
+
+
+[unreleased]: https://github.com/microsoft/presidio/compare/2.2.358...HEAD
+[2.2.358]: https://github.com/microsoft/presidio/compare/2.2.357...2.2.358
 [2.2.357]: https://github.com/microsoft/presidio/compare/2.2.356...2.2.357
 [2.2.356]: https://github.com/microsoft/presidio/compare/2.2.355...2.2.356
 [2.2.355]: https://github.com/microsoft/presidio/compare/2.2.354...2.2.355
@@ -537,3 +587,8 @@ New endpoint for deanonymizing encrypted entities by the anonymizer.
 [2.2.23]: https://github.com/microsoft/presidio/compare/2.2.2...2.2.23
 [2.2.2]: https://github.com/microsoft/presidio/compare/2.2.1...2.2.2
 [2.2.1]: https://github.com/microsoft/presidio/compare/2.2.0...2.2.1
+
+## Unreleased
+
+### Fixed
+- Fixed an issue where the CreditCardRecognizer regex could incorrectly identify 13-digit Unix timestamps as credit card numbers. Validated that 13 digit numbers that start with `1` and have no separators (e.g. `1748503543012`) are not flagged as credit cards.
